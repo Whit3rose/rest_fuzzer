@@ -1,0 +1,11 @@
+{
+"name": "Peter",
+"age": 73,
+"parents": {
+	"father": "George",
+	"mother": "Angela",
+	"fuzz_parents": "Peter FUZZseniorFUZZ"
+},
+"fuzz_me": "FUZZtest1234FUZZ",
+"fuzz_me_twice": "FUZZfirstFUZZconstantFUZZsecondFUZZ"
+}

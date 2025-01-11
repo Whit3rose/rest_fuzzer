@@ -4,6 +4,7 @@ import argparse
 import re
 import requests
 import time
+import datetime
 
 # rest fuzzer
 # write default json payload to file, then surround the value with "FUZZ" (see payload.json for an example)
@@ -28,6 +29,7 @@ def change_value(value):
     return output_string.replace("\n", "")
 
 # parse the json file and check what values to manipulate
+# TODO export changing of keywords in external function instead of manually repeating three times
 def change_values_that_have_to_be_fuzzed(payload):
     for key in  payload.keys():
         value = payload.get(key)
@@ -45,6 +47,34 @@ def change_values_that_have_to_be_fuzzed(payload):
             changed_value = change_value(value_to_be_changed)
             value = value.replace(f"FUZZ{value_to_be_changed}FUZZ", changed_value)
             indexes_of_fuzz_indicators_in_value = [m.start() for m in re.finditer('FUZZ', value)]
+
+        # some APIs require a timestamp that is set to the current time. this can be achieved by using the DATE keyword
+        # TODO flexible date format in config file or arguments
+        indexes_of_time_indicators_in_value = [m.start() for m in re.finditer('TIME', value)]
+        while len(indexes_of_time_indicators_in_value) > 1:
+            # get beginning and end of the string that has to be changes
+            beginning_of_time_to_be_changed = indexes_of_time_indicators_in_value[0] + 4
+            end_of_time_to_be_changed = indexes_of_time_indicators_in_value[1]
+            time_to_be_changed = value[beginning_of_time_to_be_changed:end_of_time_to_be_changed]
+            changed_time = datetime.datetime.now()
+            value = value.replace(f"TIME{time_to_be_changed}TIME", changed_time)
+            indexes_of_time_indicators_in_value = [m.start() for m in re.finditer('TIME', value)]
+        payload[key] = value
+
+        # some API work by also sending the index of a given request. this can be achieved by using the INDEX keyword
+        # TODO flexible index start and increase formula in config or arguments
+        indexes_of_index_indicators_in_value = [m.start() for m in re.finditer('INDEX', value)]
+        initial_index = 0
+        current_index = initial_index
+        while len(indexes_of_index_indicators_in_value) > 1:
+            # get beginning and end of the string that has to be changes
+            beginning_of_index_to_be_changed = indexes_of_index_indicators_in_value[0] + 4
+            end_of_index_to_be_changed = indexes_of_index_indicators_in_value[1]
+            index_to_be_changed = value[beginning_of_index_to_be_changed:end_of_index_to_be_changed]
+            current_index = current_index + 1
+            changed_index = current_index
+            value = value.replace(f"INDEX{index_to_be_changed}INDEX", changed_index)
+            indexes_of_index_indicators_in_value = [m.start() for m in re.finditer('INDEX', value)]
         payload[key] = value
 
     
